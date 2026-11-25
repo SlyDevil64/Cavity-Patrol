@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cavity Patrol</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#b9f0dc;--paper:#fffefc;--ink:#0b3b3c;--muted:#3d6d6c;--edge:#0b3b3c;--btn:#0a7d69;--on-btn:#fff;--sun:#ffd23f;--t-germ:#ffd3cf;--t-candy:#ffc4e1;--t-star:#fff0a0;color-scheme:light;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#072a2b;--paper:#0f4344;--ink:#e6fff7;--muted:#9fd6c9;--edge:#7ee2c8;--btn:#3fd6b6;--on-btn:#072a2b;--t-germ:#6b2c33;--t-candy:#6b2c55;--t-star:#6b5a1c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#072a2b;--paper:#0f4344;--ink:#e6fff7;--muted:#9fd6c9;--edge:#7ee2c8;--btn:#3fd6b6;--on-btn:#072a2b;--t-germ:#6b2c33;--t-candy:#6b2c55;--t-star:#6b5a1c;color-scheme:dark}
+html{height:100%;background:var(--bg);scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;min-height:100%;display:grid;place-items:center;padding:42px 16px 26px;font-family:"Bricolage Grotesque",system-ui,sans-serif;color:var(--ink);background:var(--bg);overflow-x:hidden;-webkit-user-select:none;user-select:none}
+.card{position:relative;width:min(100%,470px);background:var(--paper);border:3px solid var(--edge);border-radius:24px;box-shadow:9px 9px 0 var(--edge);padding:42px 22px 26px;text-align:center}
+.sticker{position:absolute;top:-22px;left:20px;rotate:-5deg;background:var(--sun);color:#0b3b3c;font:700 1.35rem/1 Caveat,"Comic Sans MS",cursive;padding:7px 15px;border:3px solid var(--edge);border-radius:10px;box-shadow:3px 3px 0 var(--edge)}
+h1{font-size:clamp(2.1rem,9vw,3rem);font-weight:800;line-height:1;letter-spacing:-.03em;margin:0 0 12px}
+.sub{color:var(--muted);line-height:1.5;margin:0 auto 20px;max-width:34ch}
+.legend{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:0 0 22px}
+.legend span{border:3px solid var(--edge);border-radius:12px;padding:6px 12px;font-weight:700}
+.note{font:600 1.35rem/1.15 Caveat,"Comic Sans MS",cursive;margin:20px 0 0;rotate:-1deg}
+.go{font:700 1.1rem/1.1 "Bricolage Grotesque",system-ui,sans-serif;color:var(--on-btn);background:var(--btn);border:3px solid var(--edge);border-radius:14px;padding:15px 28px;box-shadow:4px 4px 0 var(--edge);cursor:pointer;touch-action:manipulation;transition:translate .12s,box-shadow .12s}
+.go:hover{translate:-1px -1px;box-shadow:5px 5px 0 var(--edge)}
+.go:active{translate:3px 3px;box-shadow:1px 1px 0 var(--edge)}
+.go:focus-visible,.tile:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
+.hud{display:flex;gap:10px;margin-bottom:16px}
+.hud div{flex:1;border:3px solid var(--edge);border-radius:14px;padding:6px 4px}
+.hud b{display:block;font-size:1.7rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.hud span{font-size:.78rem;color:var(--muted)}
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.tile{position:relative;aspect-ratio:1;overflow:hidden;padding:0;font-size:clamp(2.1rem,11vw,3.3rem);line-height:1;color:inherit;background:var(--paper);border:3px solid var(--edge);border-radius:20px;box-shadow:4px 4px 0 var(--edge);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background .15s,translate .1s,box-shadow .1s}
+.tile:active{translate:2px 2px;box-shadow:2px 2px 0 var(--edge)}
+.base,.pop{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+.base{transition:opacity .15s}
+.pop{transform:translateY(105%);transition:transform .16s cubic-bezier(.3,1.6,.5,1)}
+.tile.on .pop{transform:none}
+.tile.on .base{opacity:.3}
+.tile[data-t=germ].on{background:var(--t-germ)}
+.tile[data-t=candy].on{background:var(--t-candy)}
+.tile[data-t=star].on{background:var(--t-star)}
+.fl{position:absolute;left:50%;top:50%;translate:-50% 0;font:800 1.5rem/1 "Bricolage Grotesque",system-ui,sans-serif;pointer-events:none;animation:fl .7s ease-out forwards}
+@keyframes fl{to{translate:-50% -38px;opacity:0}}
+.board.shake{animation:shake .3s}
+@keyframes shake{25%{translate:-6px 0}75%{translate:6px 0}}
+.big{font-size:clamp(3.4rem,18vw,5rem);font-weight:800;line-height:1;margin:0 0 6px;font-variant-numeric:tabular-nums}
+.rank{font-size:1.3rem;font-weight:700;margin:0 0 4px}
+.best{color:var(--muted);margin:0 0 22px}
+.lang{position:absolute;top:-20px;right:18px;display:flex;gap:6px}
+.lang button{font:800 .9rem/1 "Bricolage Grotesque",system-ui,sans-serif;color:var(--ink);background:var(--paper);border:3px solid var(--edge);border-radius:10px;padding:7px 10px;box-shadow:2px 2px 0 var(--edge);cursor:pointer;touch-action:manipulation}
+.lang button[aria-pressed=true]{background:var(--sun);color:#0b3b3c}
+.lang button:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
+.how-h{font:700 1.6rem/1 Caveat,"Comic Sans MS",cursive;margin:0 0 12px}
+.how{text-align:left;margin:0 auto 22px;padding:0;list-style:none;counter-reset:s;max-width:38ch}
+.how li{counter-increment:s;display:flex;gap:12px;align-items:flex-start;line-height:1.4;margin:0 0 12px}
+.how li::before{content:counter(s);flex:none;width:28px;height:28px;border:3px solid var(--edge);border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:.9rem;background:var(--sun);color:#0b3b3c}
+@media (max-width:420px){.card{box-shadow:6px 6px 0 var(--edge);padding:42px 16px 24px}.board{gap:10px}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main class="card">
+  <span class="sticker" id="sticker"></span>
+  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="tr" aria-pressed="false">TR</button></div>
+
+  <section id="start">
+    <h1 data-i="title">Cavity Patrol 🦷</h1>
+    <p class="sub" data-i="intro"></p>
+    <h2 class="how-h" data-i="howTitle"></h2>
+    <ol class="how"><li data-i="how1"></li><li data-i="how2"></li><li data-i="how3"></li></ol>
+    
+    <button class="go" id="startBtn" type="button" data-i="start"></button>
+    <p class="note" data-i="startNote"></p>
+  </section>
+
+  <section id="play" hidden>
+    <div class="hud">
+      <div><b id="score">0</b><span data-i="score"></span></div>
+      <div><b id="time">45</b><span data-i="seconds"></span></div>
+      <div><b id="best">0</b><span data-i="best"></span></div>
+    </div>
+    <div class="board" id="board"></div>
+    <p class="note" style="margin:0">🦠 +10 · ⭐ +25 · 🍬 −5</p>
+  </section>
+
+  <section id="end" hidden>
+    <h1 data-i="over"></h1>
+    <p class="big" id="fscore">0</p>
+    <p class="rank" id="rank"></p>
+    <p class="best" id="fbest"></p>
+    <button class="go" id="again" type="button" data-i="again"></button>
+    <p class="note" id="care"></p>
+  </section>
+</main>
+
+<script>
+// Add her name here to personalise the sticker, e.g. name: "Ayşe"
+const CONFIG = { name: "" };
+
+const $ = s => document.querySelector(s);
+const DUR = 45;
+const ICON = { germ: "🦠", candy: "🍬", star: "⭐" };
+const RANKS = [[150, 0], [100, 1], [50, 2], [0, 3]];
+const I18N = {
+  en: {
+    page: "Cavity Patrol", sticker: "get well soon, Doc ♥", stickerN: "get well soon, Dr. {n} ♥",
+    title: "Cavity Patrol 🦷",
+    intro: "The germs are back at it. Clear them off the teeth before they settle in.",
+    howTitle: "How to play",
+    how1: "Germs 🦠 pop up on the teeth. Tap them to scrub them away: +10.",
+    how2: "Catch the lucky stars ⭐ for a bonus: +25.",
+    how3: "Don’t tap the candy 🍬, it costs you 5 points. Score as high as you can in 45 seconds!",
+    start: "Start brushing", startNote: "Gentle rounds, 45 seconds each. Play lying down.",
+    score: "Score", seconds: "Seconds", best: "Best", over: "Time’s up!", again: "Play again",
+    tooth: "Tooth", newBest: "New personal best! 🎉", bestIs: "Best:",
+    ranks: ["Chief of dentistry 👑", "Cavity crusher 🪥", "Junior resident 🦷", "Dental intern 🌱"],
+    care: ["Prescription: tea, rest, and one more round. 🍵", "Doctor’s orders: stay warm and drink water. 🫖", "Even the best dentists need a sick day. 💛", "Now blanket up and let the germs go. 🧣"]
+  },
+  tr: {
+    page: "Çürük Devriyesi", sticker: "geçmiş olsun, Doktor ♥", stickerN: "geçmiş olsun, Dr. {n} ♥",
+    title: "Çürük Devriyesi 🦷",
+    intro: "Mikroplar yine iş başında. Dişlere yerleşmeden onları temizle.",
+    howTitle: "Nasıl oynanır",
+    how1: "Dişlerin üzerinde mikroplar 🦠 belirir. Fırçalamak için dokun: +10.",
+    how2: "Bonus için şanslı yıldızları ⭐ yakala: +25.",
+    how3: "Şekerlemelere 🍬 dokunma, 5 puan kaybedersin. 45 saniyede en yüksek puanı topla!",
+    start: "Fırçalamaya başla", startNote: "Sakin turlar, her biri 45 saniye. Yatarak bile oynanır.",
+    score: "Skor", seconds: "Saniye", best: "En iyi", over: "Süre doldu!", again: "Tekrar oyna",
+    tooth: "Diş", newBest: "Yeni kişisel rekor! 🎉", bestIs: "En iyi:",
+    ranks: ["Diş hekimliği başkanı 👑", "Çürük avcısı 🪥", "Genç asistan 🦷", "Stajyer diş hekimi 🌱"],
+    care: ["Reçete: çay, dinlenme ve bir tur daha. 🍵", "Doktor tavsiyesi: sıcak kal, bol su iç. 🫖", "En iyi diş hekimlerinin bile hasta olmaya hakkı var. 💛", "Şimdi battaniyeye sarıl, mikroplar gitsin. 🧣"]
+  }
+};
+let lang = (navigator.language || "").toLowerCase().startsWith("tr") ? "tr" : "en";
+try { lang = localStorage.getItem("cavity-lang") || lang; } catch (e) {}
+const tr = k => I18N[lang][k];
+let res = null;
+function fillEnd() {
+  if (!res) return;
+  $("#fscore").textContent = res.score;
+  $("#rank").textContent = tr("ranks")[res.rank];
+  $("#fbest").textContent = res.nb ? tr("newBest") : tr("bestIs") + " " + best;
+  $("#care").textContent = tr("care")[res.care];
+}
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.title = tr("page");
+  document.querySelectorAll("[data-i]").forEach(el => { el.textContent = tr(el.dataset.i); });
+  document.querySelectorAll("[data-lang]").forEach(b => b.setAttribute("aria-pressed", b.dataset.lang === lang));
+  $("#sticker").textContent = CONFIG.name ? tr("stickerN").replace("{n}", CONFIG.name) : tr("sticker");
+  T.forEach((t, i) => t.setAttribute("aria-label", tr("tooth") + " " + (i + 1)));
+  fillEnd();
+}
+
+
+const board = $("#board");
+let score = 0, best = 0, running = false, endAt = 0, clock, spawner;
+try { best = +localStorage.getItem("cavity-best") || 0; } catch (e) {}
+$("#best").textContent = best;
+
+
+for (let i = 0; i < 9; i++) {
+  const b = document.createElement("button");
+  b.className = "tile";
+  b.type = "button";
+  b.setAttribute("aria-label", "Tooth " + (i + 1));
+  b.innerHTML = '<span class="base">🦷</span><span class="pop"></span>';
+  b.addEventListener("pointerdown", e => { e.preventDefault(); hit(i); });
+  b.addEventListener("click", e => { if (e.detail === 0) hit(i); });
+  board.append(b);
+}
+const T = [...board.children];
+document.querySelectorAll("[data-lang]").forEach(b => b.addEventListener("click", () => {
+  lang = b.dataset.lang;
+  try { localStorage.setItem("cavity-lang", lang); } catch (e) {}
+  applyLang();
+}));
+applyLang();
+
+const left = () => Math.max(0, (endAt - performance.now()) / 1000);
+
+function show(i, type, life) {
+  const t = T[i];
+  t.dataset.t = type;
+  t.querySelector(".pop").textContent = ICON[type];
+  t.classList.add("on");
+  t.item = type;
+  t.to = setTimeout(() => clear(i), life);
+}
+function clear(i) {
+  const t = T[i];
+  clearTimeout(t.to);
+  t.classList.remove("on");
+  t.item = null;
+}
+function spawn() {
+  const free = T.map((_, i) => i).filter(i => !T[i].item);
+  if (!free.length) return;
+  const r = Math.random();
+  show(free[Math.random() * free.length | 0], r < 0.72 ? "germ" : r < 0.9 ? "candy" : "star", 2000 - (1 - left() / DUR) * 700);
+}
+function loop() {
+  if (!running) return;
+  spawn();
+  spawner = setTimeout(loop, (1300 - (1 - left() / DUR) * 500) * (0.8 + Math.random() * 0.4));
+}
+
+function hit(i) {
+  const t = T[i];
+  if (!running || !t.item) return;
+  const type = t.item;
+  const d = type === "germ" ? 10 : type === "star" ? 25 : -5;
+  score = Math.max(0, score + d);
+  $("#score").textContent = score;
+  if (d < 0) { board.classList.remove("shake"); void board.offsetWidth; board.classList.add("shake"); }
+  const f = document.createElement("span");
+  f.className = "fl";
+  f.textContent = (d > 0 ? "+" : "−") + Math.abs(d);
+  t.append(f);
+  setTimeout(() => f.remove(), 700);
+  clear(i);
+}
+document.addEventListener("keydown", e => { if (/^[1-9]$/.test(e.key)) hit(+e.key - 1); });
+
+function tick() {
+  const l = left();
+  $("#time").textContent = Math.ceil(l);
+  if (l <= 0) finish();
+}
+function start() {
+  score = 0;
+  $("#score").textContent = 0;
+  $("#best").textContent = best;
+  T.forEach((_, i) => clear(i));
+  $("#start").hidden = $("#end").hidden = true;
+  $("#play").hidden = false;
+  running = true;
+  endAt = performance.now() + DUR * 1000;
+  clock = setInterval(tick, 100);
+  tick();
+  loop();
+}
+function finish() {
+  running = false;
+  clearInterval(clock);
+  clearTimeout(spawner);
+  T.forEach((_, i) => clear(i));
+  const nb = score > best;
+  if (nb) { best = score; try { localStorage.setItem("cavity-best", best); } catch (e) {} }
+  res = { score, nb, rank: RANKS.find(r => score >= r[0])[1], care: Math.random() * 4 | 0 };
+  fillEnd();
+  
+  
+  
+  $("#play").hidden = true;
+  $("#end").hidden = false;
+}
+$("#startBtn").addEventListener("click", start);
+$("#again").addEventListener("click", start);
+</script>
+</body>
+</html>
